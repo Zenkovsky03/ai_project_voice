@@ -1,0 +1,20 @@
+.venv
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Dane audio i modele
+data/
+checkpoints/
+*.wav
+*.flac
+*.mp3
+*.m4a
+
+# Jupyter, logi
+*.ipynb
+logs/
+
+# System
+.DS_Store
