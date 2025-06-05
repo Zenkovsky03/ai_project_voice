@@ -24,7 +24,6 @@ logs/
 .venv/
 # modele i dane
 data/
-checkpoints/
 *.wav
 *.flac
 *.mp3
