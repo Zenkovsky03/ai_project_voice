@@ -23,7 +23,7 @@ def record(seconds=5):
 
 
 def load_models(model_path: str):
-    processor = WhisperProcessor.from_pretrained(model_path)
+    processor = WhisperProcessor.from_pretrained('./checkpoints/whisper-lora-pl')
     model = WhisperForConditionalGeneration.from_pretrained(model_path)
     translator = pipeline("translation", model="Helsinki-NLP/opus-mt-pl-en")
     return (model, processor), translator
