@@ -20,16 +20,10 @@ python transcribe_file.py sample.wav --model tiny --translate
 
 
 5. pobranie danych 25gb
-python data_prep.py \
-  --dataset mozilla-foundation/common_voice_12_0 \
-  --lang pl \
-  --out data/cv_pl_clean
+python data_prep.py  --dataset mozilla-foundation/common_voice_12_0  --lang pl --trust_remote_code=True --out data/cv_pl_clean
 
 5. trenowanie okolo 90min
-python train.py \
-  --train_manifest data/cv_pl_clean/manifest_train.json.gz \
-  --valid_manifest data/cv_pl_clean/manifest_valid.json.gz \
-  --out_dir checkpoints/whisper-lora-pl
+python train.py --train_manifest data/cv_pl_clean/manifest_train.json.gz --valid_manifest data/cv_pl_clean/manifest_valid.json.gz --out_dir checkpoints/whisper-lora-pl
 
 
 6. uruchamianie apki z wytrenowanym modelem

@@ -8,6 +8,10 @@ import sounddevice as sd
 from transformers import pipeline
 import whisper
 from utils.noise import reduce_noise
+from transformers import WhisperProcessor, WhisperForConditionalGeneration
+import torch
+from transformers import pipeline
+import threading
 
 SAMPLE_RATE = 16_000
 
@@ -18,16 +22,22 @@ def record(seconds=5):
     return audio.squeeze()
 
 
-def load_models(model_name: str):
-    asr = whisper.load_model(model_name)
+def load_models(model_path: str):
+    processor = WhisperProcessor.from_pretrained(model_path)
+    model = WhisperForConditionalGeneration.from_pretrained(model_path)
     translator = pipeline("translation", model="Helsinki-NLP/opus-mt-pl-en")
-    return asr, translator
+    return (model, processor), translator
 
 
-def transcribe_translate(asr, translator, audio):
+def transcribe_translate(asr_tuple, translator, audio):
+    model, processor = asr_tuple
     audio = reduce_noise(audio, SAMPLE_RATE)
-    result = asr.transcribe(audio, language='pl', task='transcribe')
-    pl_text = result['text'].strip()
+
+    inputs = processor(audio, sampling_rate=SAMPLE_RATE, return_tensors="pt")
+    with torch.no_grad():
+        output_ids = model.generate(inputs.input_features, max_length=448)
+    pl_text = processor.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+
     en_text = translator(pl_text, max_length=256)[0]['translation_text']
     return pl_text, en_text
 
@@ -40,10 +50,31 @@ def main(args):
 
     pl_var, en_var = tk.StringVar(), tk.StringVar()
 
-    def on_click():
+    def run_transcription():
+        btn.config(text="🎙️ Nagrywam...", state="disabled")
+        pl_var.set("(nagrywam...)")
+        en_var.set("")
+        root.update_idletasks()
+
+        # 🔴 Nagrywanie
         raw_audio = record(args.seconds)
+
+        # 🔄 Przed transkrypcją - wróć do trybu oczekiwania
+        btn.config(text="⏳ Przetwarzam...", state="disabled")
+        pl_var.set("⏳ Przetwarzam nagranie...")
+        en_var.set("...")
+        root.update_idletasks()
+
+        # 🧠 Transkrypcja i tłumaczenie
         pl, en = transcribe_translate(asr, translator, raw_audio)
-        pl_var.set(pl); en_var.set(en)
+
+        # 🟢 Wynik + przywrócenie przycisku
+        pl_var.set(pl)
+        en_var.set(en)
+        btn.config(text=f"🎙️ Nagraj {args.seconds} s", state="normal")
+
+    def on_click():
+        threading.Thread(target=run_transcription).start()
 
     btn = tk.Button(root, text=f"🎙️ Nagraj {args.seconds} s", command=on_click, font=("Arial", 14))
     btn.pack(pady=10)

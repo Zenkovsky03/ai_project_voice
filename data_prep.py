@@ -5,6 +5,7 @@ from datasets import load_dataset
 import soundfile as sf
 from tqdm import tqdm
 from utils.noise import reduce_noise
+from uuid import uuid4
 
 FS = 16_000
 
@@ -13,13 +14,13 @@ def save_wav(sample, out_dir: Path):
     out_dir.mkdir(parents=True, exist_ok=True)
     y = sample["audio"]["array"]
     y = reduce_noise(y, FS)
-    fname = out_dir / f"{sample['id']}.wav"
+    fname = out_dir / f"{uuid4().hex}.wav"
     sf.write(fname, y, FS)
     return str(fname), len(y) / FS
 
 
 def main(args):
-    ds = load_dataset(args.dataset, args.lang, split="train+validation", streaming=False)
+    ds = load_dataset(args.dataset, args.lang, split="train+validation", streaming=False, trust_remote_code=True)
 
     out_audio = Path(args.out) / "wav"
     manifest_train, manifest_valid = [], []
