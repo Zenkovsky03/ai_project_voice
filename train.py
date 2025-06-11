@@ -141,8 +141,8 @@ def main(args):
     print(f"   Validation samples: {len(valid_entries)}")
 
     # Użyj więcej danych - twój sprzęt to udźwignie
-    train_size = min(5000, len(train_entries))  # Znacznie zwiększone
-    valid_size = min(1000, len(valid_entries))   # Znacznie zwiększone
+    train_size = min(1000, len(train_entries))  # Znacznie zwiększone
+    valid_size = min(200, len(valid_entries))   # Znacznie zwiększone
 
     print(f"🔄 Przetwarzanie {train_size} próbek treningowych (wielowątkowo)...")
     train_ds = prepare_dataset(train_entries[:train_size], processor)
